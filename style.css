@@ -1,0 +1,150 @@
+/* Custom Styles for Eagle Retro Jerseys */
+
+.hidden {
+    display: none;
+}
+
+.checkout-input {
+    width: 100%;
+    padding: 1rem;
+    background-color: transparent;
+    border: 1px solid #27272a; /* zinc-800 */
+    color: white;
+    font-size: 0.875rem;
+    outline: none;
+}
+
+.checkout-input:focus {
+    border-color: #ffffff;
+}
+
+/* Page Transition Smoothness */
+.page-section {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Grayscale Effect for Retro Vibe */
+#product-list img {
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+#product-list div:hover img {
+    filter: grayscale(0%);
+}
+
+/* Container for the jersey image */
+.img-wrapper {
+    width: 100%;
+    max-width: 500px; /* Prevents the image from becoming huge */
+    aspect-ratio: 3 / 4; 
+    background-color: #ffffff; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid #27272a;
+    margin: 0 auto; /* Centers it */
+}
+
+/* The actual image inside the frame */
+.img-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto; /* Changed from 100% to auto to prevent stretching */
+    height: auto; /* Changed from 100% to auto to prevent stretching */
+    object-fit: contain; 
+    padding: 20px;
+}
+
+/* Hover effect for the frame */
+.group:hover .img-wrapper {
+    border-color: #ffffff;
+}
+
+.size-btn.active {
+    background-color: white;
+    color: black;
+    border-color: white;
+}
+
+/* Layout fix to keep footer at the bottom */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.page-section {
+    flex: 1 0 auto; /* This pushes the footer down */
+}
+
+/* Footer Styles */
+footer {
+    flex-shrink: 0;
+    background-color: #000;
+    border-top: 1px solid #27272a;
+    padding-bottom: 40px; /* Padding from the very bottom of the page */
+    padding-top: 40px;
+}
+
+.logos-slide-container {
+    width: 100%;
+    overflow: hidden;
+    padding: 20px 0;
+}
+
+.logos-track {
+    display: flex;
+    width: max-content;
+    animation: scroll 25s linear infinite;
+}
+
+.club-logo {
+    width: 60px;
+    height: 60px;
+    margin: 0 40px;
+    object-fit: contain;
+    /* Removed brightness/invert filters so logos stay original */
+    filter: none; 
+    transition: transform 0.3s ease;
+}
+
+.club-logo:hover {
+    transform: scale(1.1); /* Subtle pop effect on hover */
+}
+
+/* Infinite Loop Animation */
+@keyframes scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.logos-track:hover {
+    animation-play-state: paused;
+}
+/* Specific adjustment for detail page to keep images standardized */
+#product-detail .img-wrapper {
+    max-width: 500px; /* Limits the "huge" image size */
+    margin: 0 auto;
+    background-color: #ffffff; /* Consistent white background */
+}
+
+/* Ensure the detail image behaves like the category ones */
+#detail-img {
+    max-height: 100%;
+    object-fit: contain;
+}
