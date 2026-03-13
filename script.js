@@ -105,21 +105,48 @@ function renderCartPage() {
     const cart = JSON.parse(localStorage.getItem('eagle_cart')) || [];
     const container = document.getElementById('cart-items');
     const totalDisplay = document.getElementById('cart-total-amount');
+    
     if (cart.length === 0) {
         container.innerHTML = `<p class="text-zinc-600 italic">Bag is empty.</p>`;
         totalDisplay.innerText = "$0";
         return;
     }
+    
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     totalDisplay.innerText = `$${total}`;
-    container.innerHTML = cart.map(item => `
+    
+    // index is used here to identify which item to remove
+    container.innerHTML = cart.map((item, index) => `
         <div class="flex justify-between items-center py-4 border-b border-zinc-900">
-            <div><span class="font-bold uppercase text-sm">${item.name}</span><p class="text-xs text-zinc-500 uppercase">Size: ${item.size} | Qty: ${item.quantity}</p></div>
-            <span class="font-mono text-sm">$${item.price * item.quantity}</span>
-        </div>`).join('');
+            <div>
+                <span class="font-bold uppercase text-sm">${item.name}</span>
+                <p class="text-xs text-zinc-500 uppercase">Size: ${item.size} | Qty: ${item.quantity}</p>
+            </div>
+            <div class="flex items-center gap-6">
+                <span class="font-mono text-sm">$${item.price * item.quantity}</span>
+                <button onclick="removeFromCart(${index})" class="text-zinc-500 hover:text-red-500 transition-colors text-xs uppercase font-bold">
+                    Remove
+                </button>
+            </div>
+        </div>
+    `).join('');
 }
 
 function handlePurchase() {
     localStorage.removeItem('eagle_cart');
     window.location.href = 'success.html';
+}
+
+function removeFromCart(index) {
+    let cart = JSON.parse(localStorage.getItem('eagle_cart')) || [];
+    
+    // Remove the item at the specific index
+    cart.splice(index, 1);
+    
+    // Save the updated cart back to localStorage
+    localStorage.setItem('eagle_cart', JSON.stringify(cart));
+    
+    // Refresh the UI
+    renderCartPage();
+    initCommon(); // Updates the nav bar count
 }
