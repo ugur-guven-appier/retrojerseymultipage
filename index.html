@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript">
         !function(q,g,r,a,p,h,js) {
           q.appier=q.qg;
@@ -13,27 +14,19 @@
           p=g.createElement(r);p.async=!0;p.src=a;h=g.getElementsByTagName(r)[0];
           h.parentNode.insertBefore(p,h);
         } (window,document,'script','https://cdn-prd-gcp-jp0.aiqua.io/qgraph.9b20c23761363a300b8d.js');
-      </script>
-      <script type="text/javascript">
-        // Tell the SDK where the service worker is located
+    </script>
+    <script type="text/javascript">
         window.qg('init', {
           serviceWorkerPath: '/retrojerseymultipage/qg-sw.9b20c23761363a300b8d.js'
         });
-      </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </script>
     <title>Eagle Retro Jerseys | Home</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white font-sans flex flex-col min-h-screen">
 
-    <nav class="nav-container border-b border-zinc-800 p-6 flex justify-between items-center sticky top-0 bg-black z-50">
-        <h1 class="logo text-2xl font-black tracking-tighter cursor-pointer" onclick="window.location.href='index.html'">EAGLE RETRO</h1>
-        <div class="nav-links space-x-8">
-            <a href="index.html" class="hover:text-gray-400 uppercase text-sm font-bold">Home</a>
-            <a href="cart.html" class="hover:text-gray-400 uppercase text-sm font-bold">Cart (<span id="cart-count">0</span>)</a>
-        </div>
-    </nav>
+    <nav id="main-nav"></nav>
 
     <main class="flex-grow">
         <section class="p-8">
@@ -55,7 +48,9 @@
         </section>
     </main>
 
-    <footer id="main-footer"></footer> <script src="script.js"></script>
+    <footer id="main-footer"></footer>
+    
+    <script src="script.js"></script>
     <script>initCommon();</script>
 </body>
 </html>
