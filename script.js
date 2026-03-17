@@ -16,7 +16,6 @@ const products = [
     { id: 15, name: "Sweden '94", color: "Yellow", price: 75, img: "sweden_94.webp" }
 ];
 
-// Shared UI Elements
 function initCommon() {
     const nav = document.getElementById('main-nav');
     const footer = document.getElementById('main-footer');
@@ -60,6 +59,7 @@ function initCommon() {
 
 function loadCategoryPage(color) {
     const list = document.getElementById('product-list');
+    if(!list) return;
     document.getElementById('cat-title').innerText = color + " KITS";
     const filtered = products.filter(p => p.color === color);
     filtered.forEach(p => {
@@ -79,6 +79,7 @@ let currentProduct = null;
 
 function loadProductPage(id) {
     currentProduct = products.find(p => p.id == id);
+    if(!currentProduct) return;
     document.getElementById('detail-img').src = currentProduct.img;
     document.getElementById('detail-name').innerText = currentProduct.name;
     document.getElementById('detail-price').innerText = "$" + currentProduct.price;
@@ -94,10 +95,20 @@ function selectSize(size) {
 
 function handleAddToCart() {
     if (!selectedSize) return alert("Please select a size first.");
-    const qty = parseInt(document.getElementById('item-qty').value);
+    const qtyInput = document.getElementById('item-qty');
+    const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+    
     let cart = JSON.parse(localStorage.getItem('eagle_cart')) || [];
     cart.push({ ...currentProduct, size: selectedSize, quantity: qty });
     localStorage.setItem('eagle_cart', JSON.stringify(cart));
+    
+    // Notify Appier
+    window.qg('event', 'add_to_cart', {
+        item_name: currentProduct.name,
+        price: currentProduct.price,
+        size: selectedSize
+    });
+
     window.location.href = 'cart.html';
 }
 
@@ -106,16 +117,17 @@ function renderCartPage() {
     const container = document.getElementById('cart-items');
     const totalDisplay = document.getElementById('cart-total-amount');
     
+    if (!container) return;
+
     if (cart.length === 0) {
         container.innerHTML = `<p class="text-zinc-600 italic">Bag is empty.</p>`;
-        totalDisplay.innerText = "$0";
+        if(totalDisplay) totalDisplay.innerText = "$0";
         return;
     }
     
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    totalDisplay.innerText = `$${total}`;
+    if(totalDisplay) totalDisplay.innerText = `$${total}`;
     
-    // index is used here to identify which item to remove
     container.innerHTML = cart.map((item, index) => `
         <div class="flex justify-between items-center py-4 border-b border-zinc-900">
             <div>
@@ -139,14 +151,20 @@ function handlePurchase() {
 
 function removeFromCart(index) {
     let cart = JSON.parse(localStorage.getItem('eagle_cart')) || [];
-    
-    // Remove the item at the specific index
     cart.splice(index, 1);
-    
-    // Save the updated cart back to localStorage
     localStorage.setItem('eagle_cart', JSON.stringify(cart));
-    
-    // Refresh the UI
     renderCartPage();
-    initCommon(); // Updates the nav bar count
+    initCommon();
+}
+
+// --- MANDATORY SERVICE WORKER REGISTRATION ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/retrojerseymultipage/qg-sw.9b20c23761363a300b8d.js')
+        .then(function(registration) {
+            console.log('SW registered:', registration.scope);
+        }, function(err) {
+            console.log('SW failed:', err);
+        });
+    });
 }
