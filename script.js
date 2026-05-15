@@ -156,15 +156,3 @@ function removeFromCart(index) {
     renderCartPage();
     initCommon();
 }
-
-// --- MANDATORY SERVICE WORKER REGISTRATION ---
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/retrojerseymultipage/qg-sw.9b20c23761363a300b8d.js')
-        .then(function(registration) {
-            console.log('SW registered:', registration.scope);
-        }, function(err) {
-            console.log('SW failed:', err);
-        });
-    });
-}
