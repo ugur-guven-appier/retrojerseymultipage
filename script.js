@@ -145,4 +145,14 @@ function renderCartPage() {
 }
 
 function handlePurchase() {
-    const cart = JSON.parse(localStorage.
+    localStorage.removeItem('eagle_cart');
+    window.location.href = 'success.html';
+}
+
+function removeFromCart(index) {
+    let cart = JSON.parse(localStorage.getItem('eagle_cart')) || [];
+    cart.splice(index, 1);
+    localStorage.setItem('eagle_cart', JSON.stringify(cart));
+    renderCartPage();
+    initCommon();
+}
