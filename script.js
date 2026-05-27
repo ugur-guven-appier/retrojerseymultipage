@@ -102,12 +102,14 @@ function handleAddToCart() {
     cart.push({ ...currentProduct, size: selectedSize, quantity: qty });
     localStorage.setItem('eagle_cart', JSON.stringify(cart));
     
-    // Notify Appier
-    window.qg('event', 'add_to_cart', {
-        item_name: currentProduct.name,
-        price: currentProduct.price,
-        size: selectedSize
-    });
+    // Notify Appier AIQUA
+    if (typeof window.qg === "function") {
+        window.qg('event', 'add_to_cart', {
+            item_name: currentProduct.name,
+            price: currentProduct.price,
+            size: selectedSize
+        });
+    }
 
     window.location.href = 'cart.html';
 }
@@ -145,6 +147,61 @@ function renderCartPage() {
 }
 
 function handlePurchase() {
+    const cart = JSON.parse(localStorage.getItem('eagle_cart')) || [];
+    if (cart.length === 0) {
+        alert("Your cart is empty!");
+        return;
+    }
+
+    const totalOrderPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const generatedOrderId = "ORDER_" + Date.now();
+
+    // 1. Appier AIQUA & AIRIS (Woopra Setup) Checkout Completed Event
+    if (typeof window.qg === "function") {
+        window.qg("event", "checkout_completed", {
+            order_id: generatedOrderId,
+            order_price: totalOrderPrice,
+            site: window.location.hostname,
+            url: window.location.href,
+            referrer: document.referrer
+        }, totalOrderPrice);
+    }
+
+    if (window.woopra && typeof window.woopra.track === "function") {
+        window.woopra.track("checkout_completed", {
+            order_id: generatedOrderId,
+            order_price: totalOrderPrice,
+            site: window.location.hostname,
+            url: window.location.href,
+            referrer: document.referrer
+        });
+    }
+
+    // 2. Loop and track Product Purchased Event per item for AIQUA and AIRIS
+    cart.forEach(item => {
+        if (typeof window.qg === "function") {
+            window.qg("event", "product_purchased", {
+                product_id: "SKU_00" + item.id,
+                product_name: item.name,
+                product_price: item.price,
+                site: window.location.hostname,
+                url: window.location.href,
+                referrer: document.referrer
+            }, item.price * item.quantity);
+        }
+
+        if (window.woopra && typeof window.woopra.track === "function") {
+            window.woopra.track("product_purchased", {
+                product_id: "SKU_00" + item.id,
+                product_name: item.name,
+                product_price: item.price,
+                site: window.location.hostname,
+                url: window.location.href,
+                referrer: document.referrer
+            });
+        }
+    });
+
     localStorage.removeItem('eagle_cart');
     window.location.href = 'success.html';
 }
@@ -155,4 +212,16 @@ function removeFromCart(index) {
     localStorage.setItem('eagle_cart', JSON.stringify(cart));
     renderCartPage();
     initCommon();
+}
+
+// Service Worker Registration Setup
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./qg-sw.9b20c23761363a300b8d.js')
+        .then(function(registration) {
+            console.log('SW registered: ', registration.scope);
+        }, function(err) {
+            console.log('SW registration failed: ', err);
+        });
+    });
 }
