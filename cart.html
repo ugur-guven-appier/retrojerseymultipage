@@ -15,9 +15,7 @@
           p=g.createElement(r);p.async=!0;p.src=a;h=g.getElementsByTagName(r)[0];
           h.parentNode.insertBefore(p,h);
         } (window,document,'script','https://cdn-prd-gcp-jp0.aiqua.io/qgraph.9b20c23761363a300b8d.js');
-        window.qg('init', {
-          serviceWorkerPath: '/retrojerseymultipage/qg-sw.9b20c23761363a300b8d.js'
-        });
+        window.qg('init', { serviceWorkerPath: '/retrojerseymultipage/qg-sw.9b20c23761363a300b8d.js' });
     </script>
     <script>
         !function(){var t,e,r,a=window.woopra||[];if(!a.initialize){a.initialized=!0,a.initialize=function(t,e){var r,s,n,i=this;for(i.config_data=e||{},i.custom_tracker_queue=[],r=t.split("."),s=0;s<r.length;s++)n=r[s],i[n]=function(t){return function(){i.custom_tracker_queue.push([t,arguments])}}(n);i.track=function(){i.custom_tracker_queue.push(["track",arguments])},i.identify=function(){i.custom_tracker_queue.push(["identify",arguments])}};var s=document.createElement("script");s.async=!0,s.type="text/javascript",s.src="https://static.woopra.com/js/w.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(s,n)}}();
@@ -43,7 +41,7 @@
             <div class="space-y-4">
                 <input type="text" placeholder="CARD NUMBER" class="checkout-input">
                 <div class="flex gap-4"><input type="text" placeholder="MM/YY" class="checkout-input w-1/2"><input type="text" placeholder="CVV" class="checkout-input w-1/2"></div>
-                <button onclick="handlePurchase()" class="w-full bg-white text-black py-4 font-black mt-4 hover:bg-zinc-200">CONFIRM PURCHASE</button>
+                <button onclick="handlePurchase(event)" class="w-full bg-white text-black py-4 font-black mt-4 hover:bg-zinc-200">CONFIRM PURCHASE</button>
             </div>
         </div>
     </main>

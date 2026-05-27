@@ -15,9 +15,7 @@
           p=g.createElement(r);p.async=!0;p.src=a;h=g.getElementsByTagName(r)[0];
           h.parentNode.insertBefore(p,h);
         } (window,document,'script','https://cdn-prd-gcp-jp0.aiqua.io/qgraph.9b20c23761363a300b8d.js');
-        window.qg('init', {
-          serviceWorkerPath: '/retrojerseymultipage/qg-sw.9b20c23761363a300b8d.js'
-        });
+        window.qg('init', { serviceWorkerPath: '/retrojerseymultipage/qg-sw.9b20c23761363a300b8d.js' });
     </script>
     <script>
         !function(){var t,e,r,a=window.woopra||[];if(!a.initialize){a.initialized=!0,a.initialize=function(t,e){var r,s,n,i=this;for(i.config_data=e||{},i.custom_tracker_queue=[],r=t.split("."),s=0;s<r.length;s++)n=r[s],i[n]=function(t){return function(){i.custom_tracker_queue.push([t,arguments])}}(n);i.track=function(){i.custom_tracker_queue.push(["track",arguments])},i.identify=function(){i.custom_tracker_queue.push(["identify",arguments])}};var s=document.createElement("script");s.async=!0,s.type="text/javascript",s.src="https://static.woopra.com/js/w.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(s,n)}}();
@@ -27,16 +25,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white font-sans flex flex-col min-h-screen">
-
     <nav id="main-nav"></nav>
-
     <main class="flex-grow">
         <section class="p-8">
             <div class="hero-text text-center my-16">
                 <h2 class="text-6xl font-black mb-4 italic">VINTAGE SOUL.</h2>
                 <p class="text-zinc-500 tracking-widest uppercase text-xs">Premium Retro Football Kits</p>
             </div>
-            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div onclick="window.location.href='./category.html?color=Red'" class="cat-card border border-zinc-800 p-16 text-center cursor-pointer hover:bg-white hover:text-black transition-all">
                     <h3 class="text-2xl font-bold">RED KITS</h3>
@@ -50,9 +45,7 @@
             </div>
         </section>
     </main>
-
     <footer id="main-footer"></footer>
-    
     <script src="script.js"></script>
     <script>initCommon();</script>
     <script src="bb-webchat.js"></script>

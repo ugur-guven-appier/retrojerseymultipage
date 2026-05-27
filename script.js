@@ -44,12 +44,6 @@ function initCommon() {
                         <img src="https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" alt="Chelsea" class="club-logo">
                         <img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" alt="Real Madrid" class="club-logo">
                         <img src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" alt="Barca" class="club-logo">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" alt="Man Utd" class="club-logo">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg" alt="Liverpool" class="club-logo">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg" alt="Arsenal" class="club-logo">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" alt="Chelsea" class="club-logo">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" alt="Real Madrid" class="club-logo">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" alt="Barca" class="club-logo">
                     </div>
                 </div>
                 <div class="mt-10 text-center"><p class="text-zinc-600 text-[10px]">© 2026 EAGLE RETRO JERSEYS. ALL RIGHTS RESERVED.</p></div>
@@ -102,7 +96,6 @@ function handleAddToCart() {
     cart.push({ ...currentProduct, size: selectedSize, quantity: qty });
     localStorage.setItem('eagle_cart', JSON.stringify(cart));
     
-    // Notify Appier AIQUA
     if (typeof window.qg === "function") {
         window.qg('event', 'add_to_cart', {
             item_name: currentProduct.name,
@@ -146,7 +139,11 @@ function renderCartPage() {
     `).join('');
 }
 
-function handlePurchase() {
+function handlePurchase(e) {
+    if (e && typeof e.preventDefault === "function") {
+        e.preventDefault();
+    }
+
     const cart = JSON.parse(localStorage.getItem('eagle_cart')) || [];
     if (cart.length === 0) {
         alert("Your cart is empty!");
@@ -156,54 +153,61 @@ function handlePurchase() {
     const totalOrderPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const generatedOrderId = "ORDER_" + Date.now();
 
-    // 1. Appier AIQUA & AIRIS (Woopra Setup) Checkout Completed Event
+    // 1. Send checkout_completed event to AIQUA and AIRIS (Woopra)
     if (typeof window.qg === "function") {
         window.qg("event", "checkout_completed", {
-            order_id: generatedOrderId,
-            order_price: totalOrderPrice,
-            site: window.location.hostname,
-            url: window.location.href,
-            referrer: document.referrer
+            "order_id": generatedOrderId,
+            "order_price": Number(totalOrderPrice),
+            "site": String(window.location.hostname),
+            "url": String(window.location.href),
+            "referrer": String(document.referrer)
         }, totalOrderPrice);
     }
 
     if (window.woopra && typeof window.woopra.track === "function") {
         window.woopra.track("checkout_completed", {
-            order_id: generatedOrderId,
-            order_price: totalOrderPrice,
-            site: window.location.hostname,
-            url: window.location.href,
-            referrer: document.referrer
+            "order_id": generatedOrderId,
+            "order_price": Number(totalOrderPrice),
+            "site": String(window.location.hostname),
+            "url": String(window.location.href),
+            "referrer": String(document.referrer)
         });
     }
 
-    // 2. Loop and track Product Purchased Event per item for AIQUA and AIRIS
+    // 2. Send product_purchased event per unique item
     cart.forEach(item => {
         if (typeof window.qg === "function") {
             window.qg("event", "product_purchased", {
-                product_id: "SKU_00" + item.id,
-                product_name: item.name,
-                product_price: item.price,
-                site: window.location.hostname,
-                url: window.location.href,
-                referrer: document.referrer
+                "product_id": "SKU_00" + item.id,
+                "product_name": String(item.name),
+                "product_price": Number(item.price),
+                "quantity": Number(item.quantity),
+                "size": String(item.size),
+                "site": String(window.location.hostname),
+                "url": String(window.location.href),
+                "referrer": String(document.referrer)
             }, item.price * item.quantity);
         }
 
         if (window.woopra && typeof window.woopra.track === "function") {
             window.woopra.track("product_purchased", {
-                product_id: "SKU_00" + item.id,
-                product_name: item.name,
-                product_price: item.price,
-                site: window.location.hostname,
-                url: window.location.href,
-                referrer: document.referrer
+                "product_id": "SKU_00" + item.id,
+                "product_name": String(item.name),
+                "product_price": Number(item.price),
+                "quantity": Number(item.quantity),
+                "size": String(item.size),
+                "site": String(window.location.hostname),
+                "url": String(window.location.href),
+                "referrer": String(document.referrer)
             });
         }
     });
 
-    localStorage.removeItem('eagle_cart');
-    window.location.href = 'success.html';
+    // 3. Short 400ms pause to ensure data packets leave before the page transitions
+    setTimeout(function() {
+        localStorage.removeItem('eagle_cart');
+        window.location.href = 'success.html';
+    }, 400);
 }
 
 function removeFromCart(index) {
@@ -214,14 +218,10 @@ function removeFromCart(index) {
     initCommon();
 }
 
-// Service Worker Registration Setup
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('./qg-sw.9b20c23761363a300b8d.js')
-        .then(function(registration) {
-            console.log('SW registered: ', registration.scope);
-        }, function(err) {
-            console.log('SW registration failed: ', err);
-        });
+        .then(function(res) { console.log('SW active with scope: ', res.scope); })
+        .catch(function(err) { console.log('SW registration failed: ', err); });
     });
 }
