@@ -1,3 +1,136 @@
+const ORDER_CURRENCY = 'USD';
+const SHIPPING_FEE = 10;
+const PROFILE_STORAGE_KEY = 'eagle_user_profile';
+
+function getUserProfile() {
+    try {
+        return JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY)) || null;
+    } catch {
+        return null;
+    }
+}
+
+function saveUserProfile(birthday) {
+    const age = calculateAge(birthday);
+    if (age === null) return null;
+
+    const profile = {
+        birthday: String(birthday),
+        age: Number(age)
+    };
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    return profile;
+}
+
+function calculateAge(birthday) {
+    const birth = new Date(birthday + 'T00:00:00');
+    if (Number.isNaN(birth.getTime())) return null;
+
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age -= 1;
+    }
+    return age >= 0 ? age : null;
+}
+
+function identifyUser(profile) {
+    if (!profile) return;
+
+    const payload = {
+        birthday: String(profile.birthday),
+        age: Number(profile.age)
+    };
+
+    if (typeof window.qg === 'function') {
+        window.qg('identify', payload);
+    }
+
+    if (window.woopra && typeof window.woopra.identify === 'function') {
+        window.woopra.identify(payload);
+    }
+}
+
+function syncProfileForm(prefix) {
+    const birthdayInput = document.getElementById(prefix + 'birthday');
+    const ageDisplay = document.getElementById(prefix + 'age');
+    if (!birthdayInput || !ageDisplay) return;
+
+    const profile = getUserProfile();
+    if (profile) {
+        birthdayInput.value = profile.birthday;
+        ageDisplay.value = String(profile.age);
+    }
+}
+
+function handleBirthdayChange(prefix) {
+    const birthdayInput = document.getElementById(prefix + 'birthday');
+    const ageDisplay = document.getElementById(prefix + 'age');
+    if (!birthdayInput || !ageDisplay) return;
+
+    const birthday = birthdayInput.value;
+    if (!birthday) {
+        ageDisplay.value = '';
+        return;
+    }
+
+    const age = calculateAge(birthday);
+    ageDisplay.value = age !== null ? String(age) : '';
+}
+
+function handleProfileSave(prefix) {
+    const birthdayInput = document.getElementById(prefix + 'birthday');
+    if (!birthdayInput || !birthdayInput.value) {
+        alert('Please enter your birthday.');
+        return;
+    }
+
+    const profile = saveUserProfile(birthdayInput.value);
+    if (!profile) {
+        alert('Please enter a valid birthday.');
+        return;
+    }
+
+    identifyUser(profile);
+    alert('Profile saved.');
+}
+
+function collectProfileFromForm(prefix) {
+    const birthdayInput = document.getElementById(prefix + 'birthday');
+    if (!birthdayInput || !birthdayInput.value) {
+        alert('Please enter your birthday before checkout.');
+        return null;
+    }
+
+    const profile = saveUserProfile(birthdayInput.value);
+    if (!profile) {
+        alert('Please enter a valid birthday.');
+        return null;
+    }
+
+    identifyUser(profile);
+    return profile;
+}
+
+function initProfileSection(prefix) {
+    syncProfileForm(prefix);
+    const birthdayInput = document.getElementById(prefix + 'birthday');
+    if (birthdayInput) {
+        birthdayInput.addEventListener('change', function() {
+            handleBirthdayChange(prefix);
+        });
+        birthdayInput.addEventListener('input', function() {
+            handleBirthdayChange(prefix);
+        });
+    }
+
+    const profile = getUserProfile();
+    if (profile) {
+        identifyUser(profile);
+    }
+}
+
 const products = [
     { id: 1, name: "Manchester '99", color: "Red", price: 89, img: "man_utd_99.webp" },
     { id: 2, name: "Liverpool '84", color: "Red", price: 79, img: "lfc_84.jpg" },
@@ -150,64 +283,84 @@ function handlePurchase(e) {
         return;
     }
 
-    const totalOrderPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    if (!collectProfileFromForm('checkout-')) {
+        return;
+    }
+
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const orderAmount = Number(subtotal) + Number(SHIPPING_FEE);
     const generatedOrderId = "ORDER_" + Date.now();
 
-    // 1. Send checkout_completed event to AIQUA and AIRIS (Woopra)
-    if (typeof window.qg === "function") {
-        window.qg("event", "checkout_completed", {
-            "order_id": generatedOrderId,
-            "order_price": Number(totalOrderPrice),
-            "site": String(window.location.hostname),
-            "url": String(window.location.href),
-            "referrer": String(document.referrer)
-        }, totalOrderPrice);
+    sessionStorage.setItem('eagle_last_order', JSON.stringify({
+        order_id: generatedOrderId,
+        order_amount: orderAmount,
+        currency: ORDER_CURRENCY,
+        shipping_fee: Number(SHIPPING_FEE),
+        items: cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: Number(item.price),
+            quantity: Number(item.quantity),
+            size: String(item.size)
+        }))
+    }));
+
+    localStorage.removeItem('eagle_cart');
+    window.location.href = 'success.html';
+}
+
+function fireAppierEvent(eventName, payload) {
+    if (typeof window.qg === 'function') {
+        window.qg('event', eventName, payload);
+    }
+}
+
+function trackOrderConfirmation() {
+    const profile = getUserProfile();
+    if (profile) {
+        identifyUser(profile);
     }
 
-    if (window.woopra && typeof window.woopra.track === "function") {
-        window.woopra.track("checkout_completed", {
-            "order_id": generatedOrderId,
-            "order_price": Number(totalOrderPrice),
-            "site": String(window.location.hostname),
-            "url": String(window.location.href),
-            "referrer": String(document.referrer)
-        });
+    const raw = sessionStorage.getItem('eagle_last_order');
+    if (!raw) return;
+
+    let order;
+    try {
+        order = JSON.parse(raw);
+    } catch {
+        return;
+    }
+    if (order.tracked) return;
+
+    const checkoutPayload = {
+        order_id: String(order.order_id),
+        order_amount: Number(order.order_amount),
+        currency: String(order.currency),
+        shipping_fee: Number(order.shipping_fee)
+    };
+
+    fireAppierEvent('checkout_completed', checkoutPayload);
+
+    if (window.woopra && typeof window.woopra.track === 'function') {
+        window.woopra.track('checkout_completed', checkoutPayload);
     }
 
-    // 2. Send product_purchased event per unique item
-    cart.forEach(item => {
-        if (typeof window.qg === "function") {
-            window.qg("event", "product_purchased", {
-                "product_id": "SKU_00" + item.id,
-                "product_name": String(item.name),
-                "product_price": Number(item.price),
-                "quantity": Number(item.quantity),
-                "size": String(item.size),
-                "site": String(window.location.hostname),
-                "url": String(window.location.href),
-                "referrer": String(document.referrer)
-            }, item.price * item.quantity);
-        }
-
-        if (window.woopra && typeof window.woopra.track === "function") {
-            window.woopra.track("product_purchased", {
-                "product_id": "SKU_00" + item.id,
-                "product_name": String(item.name),
-                "product_price": Number(item.price),
-                "quantity": Number(item.quantity),
-                "size": String(item.size),
-                "site": String(window.location.hostname),
-                "url": String(window.location.href),
-                "referrer": String(document.referrer)
-            });
+    (order.items || []).forEach(item => {
+        const productPayload = {
+            product_id: 'SKU_00' + item.id,
+            product_name: String(item.name),
+            product_price: Number(item.price),
+            quantity: Number(item.quantity),
+            size: String(item.size)
+        };
+        fireAppierEvent('product_purchased', productPayload);
+        if (window.woopra && typeof window.woopra.track === 'function') {
+            window.woopra.track('product_purchased', productPayload);
         }
     });
 
-    // 3. Short 400ms pause to ensure data packets leave before the page transitions
-    setTimeout(function() {
-        localStorage.removeItem('eagle_cart');
-        window.location.href = 'success.html';
-    }, 400);
+    order.tracked = true;
+    sessionStorage.setItem('eagle_last_order', JSON.stringify(order));
 }
 
 function removeFromCart(index) {

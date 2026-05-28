@@ -32,6 +32,16 @@
                 <h2 class="text-6xl font-black mb-4 italic">VINTAGE SOUL.</h2>
                 <p class="text-zinc-500 tracking-widest uppercase text-xs">Premium Retro Football Kits</p>
             </div>
+            <div class="max-w-md mx-auto mb-16 bg-zinc-900 border border-zinc-800 p-8">
+                <h3 class="text-sm font-bold mb-6 text-zinc-400 tracking-widest uppercase text-center">Your Profile</h3>
+                <div class="space-y-4">
+                    <label class="block text-xs uppercase tracking-widest text-zinc-500">Birthday</label>
+                    <input type="date" id="profile-birthday" class="checkout-input w-full">
+                    <label class="block text-xs uppercase tracking-widest text-zinc-500">Age</label>
+                    <input type="text" id="profile-age" readonly placeholder="Calculated from birthday" class="checkout-input w-full bg-zinc-950 text-zinc-400">
+                    <button type="button" onclick="handleProfileSave('profile-')" class="w-full bg-white text-black py-3 font-black uppercase text-sm hover:bg-zinc-200">Save Profile</button>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div onclick="window.location.href='./category.html?color=Red'" class="cat-card border border-zinc-800 p-16 text-center cursor-pointer hover:bg-white hover:text-black transition-all">
                     <h3 class="text-2xl font-bold">RED KITS</h3>
@@ -47,7 +57,7 @@
     </main>
     <footer id="main-footer"></footer>
     <script src="script.js"></script>
-    <script>initCommon();</script>
+    <script>initCommon(); initProfileSection('profile-');</script>
     <script src="bb-webchat.js"></script>
 </body>
 </html>

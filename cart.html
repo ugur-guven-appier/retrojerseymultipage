@@ -36,7 +36,14 @@
             <span class="text-xl font-bold tracking-widest">TOTAL</span>
             <span id="cart-total-amount" class="text-2xl font-mono font-black text-white">$0</span>
         </div>
-        <div id="checkout-form" class="bg-zinc-900 p-8 border border-zinc-800">
+        <div id="checkout-form" class="bg-zinc-900 p-8 border border-zinc-800 mb-6">
+            <h3 class="text-sm font-bold mb-6 text-zinc-400 tracking-widest uppercase">Your Details</h3>
+            <div class="space-y-4 mb-8">
+                <label class="block text-xs uppercase tracking-widest text-zinc-500">Birthday</label>
+                <input type="date" id="checkout-birthday" class="checkout-input w-full">
+                <label class="block text-xs uppercase tracking-widest text-zinc-500">Age</label>
+                <input type="text" id="checkout-age" readonly placeholder="Calculated from birthday" class="checkout-input w-full bg-zinc-950 text-zinc-400">
+            </div>
             <h3 class="text-sm font-bold mb-6 text-zinc-400 tracking-widest uppercase">Payment Details</h3>
             <div class="space-y-4">
                 <input type="text" placeholder="CARD NUMBER" class="checkout-input">
@@ -47,7 +54,7 @@
     </main>
     <footer id="main-footer"></footer>
     <script src="script.js"></script>
-    <script>initCommon(); renderCartPage();</script>
+    <script>initCommon(); renderCartPage(); initProfileSection('checkout-');</script>
     <script src="bb-webchat.js"></script>
 </body>
 </html>
