@@ -204,12 +204,43 @@ function loadCategoryPage(color) {
 let selectedSize = null;
 let currentProduct = null;
 
+function buildProductPayload(product, extra) {
+    const payload = {
+        product_id: 'SKU_00' + product.id,
+        product_name: String(product.name),
+        product_price: Number(product.price),
+        currency: ORDER_CURRENCY
+    };
+    return extra ? Object.assign(payload, extra) : payload;
+}
+
+function trackAppierAndWoopra(eventName, payload) {
+    fireAppierEvent(eventName, payload);
+    if (window.woopra && typeof window.woopra.track === 'function') {
+        window.woopra.track(eventName, payload);
+    }
+}
+
+function trackProductViewed(product) {
+    if (!product) return;
+    trackAppierAndWoopra('product_viewed', buildProductPayload(product));
+}
+
+function trackProductPurchased(item) {
+    if (!item) return;
+    trackAppierAndWoopra('product_purchased', buildProductPayload(item, {
+        quantity: Number(item.quantity),
+        size: String(item.size)
+    }));
+}
+
 function loadProductPage(id) {
     currentProduct = products.find(p => p.id == id);
     if(!currentProduct) return;
     document.getElementById('detail-img').src = currentProduct.img;
     document.getElementById('detail-name').innerText = currentProduct.name;
     document.getElementById('detail-price').innerText = "$" + currentProduct.price;
+    trackProductViewed(currentProduct);
 }
 
 function selectSize(size) {
@@ -229,13 +260,10 @@ function handleAddToCart() {
     cart.push({ ...currentProduct, size: selectedSize, quantity: qty });
     localStorage.setItem('eagle_cart', JSON.stringify(cart));
     
-    if (typeof window.qg === "function") {
-        window.qg('event', 'add_to_cart', {
-            item_name: currentProduct.name,
-            price: currentProduct.price,
-            size: selectedSize
-        });
-    }
+    trackAppierAndWoopra('add_to_cart', Object.assign(buildProductPayload(currentProduct), {
+        size: String(selectedSize),
+        quantity: Number(qty)
+    }));
 
     window.location.href = 'cart.html';
 }
@@ -339,24 +367,10 @@ function trackOrderConfirmation() {
         shipping_fee: Number(order.shipping_fee)
     };
 
-    fireAppierEvent('checkout_completed', checkoutPayload);
+    trackAppierAndWoopra('checkout_completed', checkoutPayload);
 
-    if (window.woopra && typeof window.woopra.track === 'function') {
-        window.woopra.track('checkout_completed', checkoutPayload);
-    }
-
-    (order.items || []).forEach(item => {
-        const productPayload = {
-            product_id: 'SKU_00' + item.id,
-            product_name: String(item.name),
-            product_price: Number(item.price),
-            quantity: Number(item.quantity),
-            size: String(item.size)
-        };
-        fireAppierEvent('product_purchased', productPayload);
-        if (window.woopra && typeof window.woopra.track === 'function') {
-            window.woopra.track('product_purchased', productPayload);
-        }
+    (order.items || []).forEach(function(item) {
+        trackProductPurchased(item);
     });
 
     order.tracked = true;
